@@ -9,6 +9,8 @@ use utils::to_cpath;
 use DiskExt;
 use DiskType;
 
+use core_foundation::array::{CFArrayGetCount, CFArrayGetValueAtIndex};
+use core_foundation::base::{kCFAllocatorDefault, kCFAllocatorNull, CFRelease};
 use core_foundation::boolean as cfb;
 use core_foundation::string as cfs;
 use core_foundation::url::{CFURLGetFileSystemRepresentation, CFURLRef};
@@ -90,14 +92,14 @@ pub(crate) fn get_disks(session: ffi::DASessionRef) -> Vec<Disk> {
         return Vec::new();
     }
     let mut disks = Vec::new();
-    for i in 0..unsafe { ffi::CFArrayGetCount(arr) } {
-        let url = unsafe { ffi::CFArrayGetValueAtIndex(arr, i) } as CFURLRef;
+    for i in 0..unsafe { CFArrayGetCount(arr) } {
+        let url = unsafe { CFArrayGetValueAtIndex(arr, i) } as CFURLRef;
         if url.is_null() {
             continue;
         }
         if let Some(mount_point) = unsafe { to_path(url) } {
             unsafe {
-                let disk = ffi::DADiskCreateFromVolumePath(ffi::kCFAllocatorDefault, session, url);
+                let disk = ffi::DADiskCreateFromVolumePath(kCFAllocatorDefault as _, session, url);
                 let dict = ffi::DADiskCopyDescription(disk);
                 if !dict.is_null() {
                     // Keeping this around in case one might want the list of the available
@@ -128,13 +130,13 @@ pub(crate) fn get_disks(session: ffi::DASessionRef) -> Vec<Disk> {
                     if let Some(disk) = new_disk(name, mount_point, type_) {
                         disks.push(disk);
                     }
-                    ffi::CFRelease(dict as *const c_void);
+                    CFRelease(dict as _);
                 }
             }
         }
     }
     unsafe {
-        ffi::CFRelease(arr as *const c_void);
+        CFRelease(arr as _);
     }
     disks
 }
@@ -147,8 +149,8 @@ unsafe fn get_dict_value<T, F: FnOnce(*const c_void) -> Option<T>>(
     let key = ffi::CFStringCreateWithCStringNoCopy(
         ptr::null_mut(),
         key.as_ptr() as *const c_char,
-        ffi::kCFStringEncodingMacRoman,
-        ffi::kCFAllocatorNull as *mut c_void,
+        cfs::kCFStringEncodingUTF8,
+        kCFAllocatorNull as _,
     );
     let mut value = ::std::ptr::null();
     let ret = if ffi::CFDictionaryGetValueIfPresent(dict, key as _, &mut value) != 0 {
@@ -156,7 +158,7 @@ unsafe fn get_dict_value<T, F: FnOnce(*const c_void) -> Option<T>>(
     } else {
         None
     };
-    ffi::CFRelease(key as *const c_void);
+    CFRelease(key as _);
     ret
 }
 

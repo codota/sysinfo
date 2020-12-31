@@ -4,20 +4,12 @@
 // Copyright (c) 2015 Guillaume Gomez
 //
 
+use core_foundation::array::__CFArray;
+use core_foundation::base::Boolean;
 use core_foundation::url::CFURLRef;
-use libc::{c_char, c_int, c_long, c_uchar, c_uint, c_ushort, c_void, size_t};
+use libc::{c_char, c_int, c_uchar, c_uint, c_ushort, c_void, size_t};
 
 extern "C" {
-    // #[no_mangle]
-    pub static kCFAllocatorDefault: CFAllocatorRef;
-    // #[no_mangle]
-    // pub static kODSessionDefault: ODSessionRef;
-    // #[no_mangle]
-    pub static kCFAllocatorNull: CFAllocatorRef;
-    // from https://github.com/apple/ccs-pyosxframeworks/blob/ccbacc3408bd7583a7535bbaca4020bdfe94bd2f/osx/frameworks/_opendirectory_cffi.py
-    // #[no_mangle]
-    // pub static kODRecordTypeUsers: ODRecordType;
-
     pub fn proc_pidinfo(
         pid: c_int,
         flavor: c_int,
@@ -66,7 +58,6 @@ extern "C" {
     // pub fn CFDictionaryContainsKey(d: CFDictionaryRef, key: *const c_void) -> Boolean;
     // pub fn CFDictionaryGetValue(d: CFDictionaryRef, key: *const c_void) -> *const c_void;
     // pub fn IORegistryEntryGetName(entry: io_registry_entry_t, name: *mut c_char) -> kern_return_t;
-    pub fn CFRelease(cf: CFTypeRef);
     pub fn CFStringCreateWithCStringNoCopy(
         alloc: *mut c_void,
         cStr: *const c_char,
@@ -99,8 +90,6 @@ extern "C" {
     //     maxResults: CFIndex,
     //     error: *mut CFErrorRef,
     // ) -> ODQueryRef;
-    pub fn CFArrayGetCount(theArray: CFArrayRef) -> CFIndex;
-    pub fn CFArrayGetValueAtIndex(theArray: CFArrayRef, idx: CFIndex) -> *const c_void;
     // pub fn ODRecordGetRecordName(record: ODRecordRef) -> CFStringRef;
 
     pub fn mach_absolute_time() -> u64;
@@ -267,12 +256,6 @@ pub struct __CFError {
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[repr(C)]
-pub struct __CFArray {
-    __private: c_void,
-}
-
-#[cfg_attr(feature = "debug", derive(Debug))]
-#[repr(C)]
 pub struct __ODRecord {
     __private: c_void,
 }
@@ -300,7 +283,6 @@ pub type CFDictionaryRef = *const __CFDictionary;
 // pub type io_name_t = [u8; 128];
 // #[allow(non_camel_case_types)]
 // pub type io_registry_entry_t = io_object_t;
-pub type CFTypeRef = *const c_void;
 pub type CFStringRef = *const __CFString;
 // pub type NSArray = *const __NSArray;
 pub type DADiskRef = *const __DADisk;
@@ -340,16 +322,11 @@ pub type io_connect_t = io_object_t;
 pub type boolean_t = c_uint;
 #[allow(non_camel_case_types)]
 pub type kern_return_t = c_int;
-pub type Boolean = c_uchar;
 // pub type IOOptionBits = u32;
 pub type CFStringEncoding = u32;
 // pub type ODRecordType = CFStringRef;
 // pub type ODAttributeType = CFStringRef;
 // pub type ODMatchType = u32;
-pub type CFIndex = c_long;
-#[repr(C)]
-pub struct __CFBoolean(c_void);
-// pub type CFBooleanRef = *const __CFBoolean;
 
 /*#[repr(C)]
 pub struct task_thread_times_info {
@@ -458,7 +435,7 @@ pub struct xsw_usage {
     pub xsu_encrypted: boolean_t,
 }
 
-//https://github.com/andrewdavidmackenzie/libproc-rs/blob/master/src/libproc/pid_rusage.rs
+// https://github.com/andrewdavidmackenzie/libproc-rs/blob/master/src/libproc/pid_rusage.rs
 #[derive(Debug, Default)]
 #[repr(C)]
 pub struct RUsageInfoV2 {
@@ -517,5 +494,3 @@ pub const SMC_CMD_READ_BYTES: u8 = 5;
 pub const PROC_PIDPATHINFO_MAXSIZE: u32 = 4096;
 
 pub const KIO_RETURN_SUCCESS: i32 = 0;
-#[allow(non_upper_case_globals)]
-pub const kCFStringEncodingMacRoman: CFStringEncoding = 0;
