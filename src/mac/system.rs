@@ -5,7 +5,6 @@
 //
 
 use sys::component::Component;
-use sys::disk::Disk;
 use sys::ffi;
 use sys::network::Networks;
 use sys::process::*;
@@ -41,13 +40,10 @@ pub struct System {
     page_size_kb: u64,
     components: Vec<Component>,
     connection: Option<ffi::io_connect_t>,
-    disks: Vec<Disk>,
     networks: Networks,
     port: ffi::mach_port_t,
     users: Vec<User>,
     boot_time: u64,
-    // Used to get disk information, to be more specific, it's needed by the
-    // DADiskCreateFromVolumePath function.
     session: SessionWrap,
 }
 
@@ -127,7 +123,6 @@ impl SystemExt for System {
             page_size_kb: unsafe { sysconf(_SC_PAGESIZE) as u64 / 1_000 },
             components: Vec::with_capacity(2),
             connection: get_io_service_connection(),
-            disks: Vec::with_capacity(1),
             networks: Networks::new(),
             port,
             users: Vec::new(),
@@ -299,13 +294,6 @@ impl SystemExt for System {
         }
     }
 
-    fn refresh_disks_list(&mut self) {
-        if self.session.0.is_null() {
-            self.session.0 = unsafe { ffi::DASessionCreate(ffi::kCFAllocatorDefault) };
-        }
-        self.disks = crate::mac::disk::get_disks(self.session.0);
-    }
-
     fn refresh_users_list(&mut self) {
         self.users = crate::mac::users::get_users_list();
     }
@@ -373,14 +361,6 @@ impl SystemExt for System {
 
     fn get_components_mut(&mut self) -> &mut [Component] {
         &mut self.components
-    }
-
-    fn get_disks(&self) -> &[Disk] {
-        &self.disks
-    }
-
-    fn get_disks_mut(&mut self) -> &mut [Disk] {
-        &mut self.disks
     }
 
     fn get_uptime(&self) -> u64 {

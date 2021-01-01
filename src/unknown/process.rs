@@ -5,7 +5,6 @@
 //
 
 use std::path::Path;
-use DiskUsage;
 use Pid;
 use ProcessExt;
 
@@ -79,9 +78,5 @@ impl ProcessExt for Process {
 
     fn cpu_usage(&self) -> f32 {
         0.0
-    }
-
-    fn disk_usage(&self) -> DiskUsage {
-        DiskUsage::default()
     }
 }

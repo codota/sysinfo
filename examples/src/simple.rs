@@ -67,10 +67,6 @@ fn print_help() {
     );
     writeln!(
         &mut io::stdout(),
-        "refresh_disks      : reloads only disks' information"
-    );
-    writeln!(
-        &mut io::stdout(),
         "refresh_users      : reloads only users' information"
     );
     writeln!(
@@ -94,10 +90,6 @@ fn print_help() {
     writeln!(
         &mut io::stdout(),
         "temperature        : Displays components' temperature"
-    );
-    writeln!(
-        &mut io::stdout(),
-        "disks              : Displays disks' information"
     );
     writeln!(
         &mut io::stdout(),
@@ -138,11 +130,6 @@ fn print_help() {
 fn interpret_input(input: &str, sys: &mut System) -> bool {
     match input.trim() {
         "help" => print_help(),
-        "refresh_disks" => {
-            writeln!(&mut io::stdout(), "Refreshing disk list...");
-            sys.refresh_disks_list();
-            writeln!(&mut io::stdout(), "Done.");
-        }
         "refresh_users" => {
             writeln!(&mut io::stdout(), "Refreshing user list...");
             sys.refresh_users_list();
@@ -308,11 +295,6 @@ fn interpret_input(input: &str, sys: &mut System) -> bool {
                         }
                     };
                 }
-            }
-        }
-        "disks" => {
-            for disk in sys.get_disks() {
-                writeln!(&mut io::stdout(), "{:?}", disk);
             }
         }
         "users" => {

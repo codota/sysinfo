@@ -12,7 +12,6 @@ use std::path::{Path, PathBuf};
 
 use libc::{c_int, c_void, gid_t, kill, size_t, uid_t};
 
-use DiskUsage;
 use Pid;
 use ProcessExt;
 
@@ -313,15 +312,6 @@ impl ProcessExt for Process {
     fn cpu_usage(&self) -> f32 {
         self.cpu_usage
     }
-
-    fn disk_usage(&self) -> DiskUsage {
-        DiskUsage {
-            read_bytes: self.read_bytes - self.old_read_bytes,
-            total_read_bytes: self.read_bytes,
-            written_bytes: self.written_bytes - self.old_written_bytes,
-            total_written_bytes: self.written_bytes,
-        }
-    }
 }
 
 pub(crate) fn compute_cpu_usage(p: &mut Process, time: u64, task_time: u64) {
@@ -418,7 +408,6 @@ pub(crate) fn update_process(
 
             p.memory = task_info.pti_resident_size / 1_000;
             p.virtual_memory = task_info.pti_virtual_size / 1_000;
-            update_proc_disk_activity(p);
             return Ok(None);
         }
 
@@ -605,24 +594,7 @@ pub(crate) fn update_process(
         p.uid = info.pbi_uid;
         p.gid = info.pbi_gid;
         p.process_status = ProcessStatus::from(info.pbi_status);
-        update_proc_disk_activity(&mut p);
         Ok(Some(p))
-    }
-}
-
-fn update_proc_disk_activity(p: &mut Process) {
-    p.old_read_bytes = p.read_bytes;
-    p.old_written_bytes = p.written_bytes;
-
-    let mut pidrusage = MaybeUninit::<ffi::RUsageInfoV2>::uninit();
-    let retval = unsafe { ffi::proc_pid_rusage(p.pid() as c_int, 2, pidrusage.as_mut_ptr() as _) };
-
-    if retval < 0 {
-        sysinfo_debug!("proc_pid_rusage failed: {:?}", retval);
-    } else {
-        let pidrusage = unsafe { pidrusage.assume_init() };
-        p.read_bytes = pidrusage.ri_diskio_bytesread;
-        p.written_bytes = pidrusage.ri_diskio_byteswritten;
     }
 }
 

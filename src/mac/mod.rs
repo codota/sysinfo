@@ -5,7 +5,6 @@
 //
 
 pub mod component;
-pub mod disk;
 mod ffi;
 pub mod network;
 pub mod process;
@@ -15,7 +14,6 @@ pub mod users;
 mod utils;
 
 pub use self::component::Component;
-pub use self::disk::Disk;
 pub use self::network::{NetworkData, Networks};
 pub use self::process::{Process, ProcessStatus};
 pub use self::processor::Processor;

@@ -4,9 +4,7 @@
 // Copyright (c) 2017 Guillaume Gomez
 //
 
-use sys::{Component, Disk, Networks, Process, Processor};
-use DiskType;
-use DiskUsage;
+use sys::{Component, Networks, Process, Processor};
 use LoadAvg;
 use NetworksIter;
 use Pid;
@@ -18,102 +16,6 @@ use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::fmt::Debug;
 use std::path::Path;
-
-/// Contains all the methods of the [`Disk`][crate::Disk] struct.
-///
-/// ```no_run
-/// use sysinfo::{DiskExt, System, SystemExt};
-///
-/// let s = System::new();
-/// for disk in s.get_disks() {
-///     println!("{:?}: {:?}", disk.get_name(), disk.get_type());
-/// }
-/// ```
-pub trait DiskExt: Debug {
-    /// Returns the disk type.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{:?}", disk.get_type());
-    /// }
-    /// ```
-    fn get_type(&self) -> DiskType;
-
-    /// Returns the disk name.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{:?}", disk.get_name());
-    /// }
-    /// ```
-    fn get_name(&self) -> &OsStr;
-
-    /// Returns the file system used on this disk (so for example: `EXT4`, `NTFS`, etc...).
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{:?}", disk.get_file_system());
-    /// }
-    /// ```
-    fn get_file_system(&self) -> &[u8];
-
-    /// Returns the mount point of the disk (`/` for example).
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{:?}", disk.get_mount_point());
-    /// }
-    /// ```
-    fn get_mount_point(&self) -> &Path;
-
-    /// Returns the total disk size, in bytes.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{}", disk.get_total_space());
-    /// }
-    /// ```
-    fn get_total_space(&self) -> u64;
-
-    /// Returns the available disk size, in bytes.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// for disk in s.get_disks() {
-    ///     println!("{}", disk.get_available_space());
-    /// }
-    /// ```
-    fn get_available_space(&self) -> u64;
-
-    /// Updates the disk' information.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let mut s = System::new_all();
-    /// for disk in s.get_disks_mut() {
-    ///     disk.refresh();
-    /// }
-    /// ```
-    fn refresh(&mut self) -> bool;
-}
 
 /// Contains all the methods of the [`Process`][crate::Process] struct.
 pub trait ProcessExt: Debug {
@@ -296,28 +198,6 @@ pub trait ProcessExt: Debug {
     /// }
     /// ```
     fn cpu_usage(&self) -> f32;
-
-    /// Returns number of bytes read and written to disk.
-    ///
-    /// /!\\ On Windows, this method actually returns **ALL** I/O read and written bytes.
-    ///
-    /// ```no_run
-    /// use sysinfo::{ProcessExt, System, SystemExt};
-    ///
-    /// let s = System::new();
-    /// if let Some(process) = s.get_process(1337) {
-    ///     let disk_usage = process.disk_usage();
-    ///     println!("read bytes   : new/total => {}/{}",
-    ///         disk_usage.read_bytes,
-    ///         disk_usage.total_read_bytes,
-    ///     );
-    ///     println!("written bytes: new/total => {}/{}",
-    ///         disk_usage.written_bytes,
-    ///         disk_usage.total_written_bytes,
-    ///     );
-    /// }
-    /// ```
-    fn disk_usage(&self) -> DiskUsage;
 }
 
 /// Contains all the methods of the [`Processor`][crate::Processor] struct.
@@ -389,7 +269,7 @@ pub trait ProcessorExt: Debug {
 /// Contains all the methods of the [`System`][crate::System] type.
 pub trait SystemExt: Sized + Debug + Default {
     /// Creates a new [`System`] instance with nothing loaded except the processors list. If you
-    /// want to load components, network interfaces or the disks, you'll have to use the
+    /// want to load components, network interfaces, you'll have to use the
     /// `refresh_*_list` methods. [`SystemExt::refresh_networks_list`] for example.
     ///
     /// Use the [`refresh_all`] method to update its internal information (or any of the `refresh_`
@@ -430,16 +310,8 @@ pub trait SystemExt: Sized + Debug + Default {
     /// ```
     /// use sysinfo::{RefreshKind, System, SystemExt};
     ///
-    /// // We want everything except disks.
-    /// let mut system = System::new_with_specifics(RefreshKind::everything().without_disks_list());
-    ///
-    /// assert_eq!(system.get_disks().len(), 0);
     /// assert!(system.get_processes().len() > 0);
     ///
-    /// // If you want the disks list afterwards, just call the corresponding
-    /// // "refresh_disks_list":
-    /// system.refresh_disks_list();
-    /// let disks = system.get_disks();
     /// ```
     fn new_with_specifics(refreshes: RefreshKind) -> Self;
 
@@ -473,11 +345,6 @@ pub trait SystemExt: Sized + Debug + Default {
         }
         if refreshes.processes() {
             self.refresh_processes();
-        }
-        if refreshes.disks_list() {
-            self.refresh_disks_list();
-        } else if refreshes.disks() {
-            self.refresh_disks();
         }
         if refreshes.users_list() {
             self.refresh_users_list();
@@ -570,30 +437,6 @@ pub trait SystemExt: Sized + Debug + Default {
     /// ```
     fn refresh_process(&mut self, pid: Pid) -> bool;
 
-    /// Refreshes the listed disks' information.
-    ///
-    /// ```no_run
-    /// use sysinfo::{System, SystemExt};
-    ///
-    /// let mut s = System::new_all();
-    /// s.refresh_disks();
-    /// ```
-    fn refresh_disks(&mut self) {
-        for disk in self.get_disks_mut() {
-            disk.refresh();
-        }
-    }
-
-    /// The disk list will be emptied then completely recomputed.
-    ///
-    /// ```no_run
-    /// use sysinfo::{System, SystemExt};
-    ///
-    /// let mut s = System::new_all();
-    /// s.refresh_disks_list();
-    /// ```
-    fn refresh_disks_list(&mut self);
-
     /// Refreshes users list.
     ///
     /// ```no_run
@@ -649,9 +492,9 @@ pub trait SystemExt: Sized + Debug + Default {
         self.get_networks_mut().refresh_networks_list();
     }
 
-    /// Refreshes all system, processes, disks and network interfaces information.
+    /// Refreshes all system, processes, and network interfaces information.
     ///
-    /// Please note that it doesn't recompute disks list, components list, network interfaces
+    /// Please note that it doesn't recompute components list, network interfaces
     /// list nor users list.
     ///
     /// ```no_run
@@ -663,7 +506,6 @@ pub trait SystemExt: Sized + Debug + Default {
     fn refresh_all(&mut self) {
         self.refresh_system();
         self.refresh_processes();
-        self.refresh_disks();
         self.refresh_networks();
     }
 
@@ -839,18 +681,6 @@ pub trait SystemExt: Sized + Debug + Default {
     /// ```
     fn get_components_mut(&mut self) -> &mut [Component];
 
-    /// Returns the disks list.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let s = System::new_all();
-    /// for disk in s.get_disks() {
-    ///     println!("{:?}", disk.get_name());
-    /// }
-    /// ```
-    fn get_disks(&self) -> &[Disk];
-
     /// Returns the users list.
     ///
     /// ```no_run
@@ -862,18 +692,6 @@ pub trait SystemExt: Sized + Debug + Default {
     /// }
     /// ```
     fn get_users(&self) -> &[User];
-
-    /// Returns the disks list.
-    ///
-    /// ```no_run
-    /// use sysinfo::{DiskExt, System, SystemExt};
-    ///
-    /// let mut s = System::new_all();
-    /// for disk in s.get_disks_mut() {
-    ///     disk.refresh();
-    /// }
-    /// ```
-    fn get_disks_mut(&mut self) -> &mut [Disk];
 
     /// Returns the network interfaces object.
     ///

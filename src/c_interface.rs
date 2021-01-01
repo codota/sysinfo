@@ -119,29 +119,6 @@ pub extern "C" fn sysinfo_refresh_process(system: CSystem, pid: pid_t) {
     Box::into_raw(system);
 }
 
-/// Equivalent of [`System::refresh_disks()`][crate::System#method.refresh_disks].
-#[no_mangle]
-pub extern "C" fn sysinfo_refresh_disks(system: CSystem) {
-    assert!(!system.is_null());
-    let mut system: Box<System> = unsafe { Box::from_raw(system as *mut System) };
-    {
-        let system: &mut System = system.borrow_mut();
-        system.refresh_disks();
-    }
-    Box::into_raw(system);
-}
-
-/// Equivalent of [`System::refresh_disks_list()`][crate::System#method.refresh_disks_list].
-#[no_mangle]
-pub extern "C" fn sysinfo_refresh_disks_list(system: CSystem) {
-    assert!(!system.is_null());
-    let mut system: Box<System> = unsafe { Box::from_raw(system as *mut System) };
-    {
-        let system: &mut System = system.borrow_mut();
-        system.refresh_disks_list();
-    }
-    Box::into_raw(system);
-}
 
 /// Equivalent of [`System::get_total_memory()`][crate::System#method.get_total_memory].
 #[no_mangle]

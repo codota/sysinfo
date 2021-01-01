@@ -5,7 +5,6 @@
 //
 
 use sys::component::{self, Component};
-use sys::disk::Disk;
 use sys::processor::*;
 use sys::users::get_users;
 
@@ -23,7 +22,7 @@ use SystemExt;
 use User;
 
 use windows::process::{
-    compute_cpu_usage, get_handle, get_system_computation_time, update_disk_usage, update_memory,
+    compute_cpu_usage, get_handle, get_system_computation_time, update_memory,
     Process,
 };
 use windows::tools::*;
@@ -50,7 +49,6 @@ pub struct System {
     global_processor: Processor,
     processors: Vec<Processor>,
     components: Vec<Component>,
-    disks: Vec<Disk>,
     query: Option<Query>,
     networks: Networks,
     boot_time: u64,
@@ -86,7 +84,6 @@ impl SystemExt for System {
             global_processor: Processor::new_with_values("Total CPU", vendor_id, brand, 0),
             processors,
             components: Vec::new(),
-            disks: Vec::with_capacity(2),
             query: Query::new(),
             networks: Networks::new(),
             boot_time: unsafe { boot_time() },
@@ -181,7 +178,6 @@ impl SystemExt for System {
         } else if let Some(mut p) = Process::new_from_pid(pid) {
             let system_time = get_system_computation_time();
             compute_cpu_usage(&mut p, self.processors.len() as u64, system_time);
-            update_disk_usage(&mut p);
             self.process_list.insert(pid, p);
             true
         } else {
@@ -250,7 +246,6 @@ impl SystemExt for System {
                             proc_.memory = (pi.WorkingSetSize as u64) / 1_000;
                             proc_.virtual_memory = (pi.VirtualSize as u64) / 1_000;
                             compute_cpu_usage(proc_, nb_processors, system_time);
-                            update_disk_usage(proc_);
                             proc_.updated = true;
                             return None;
                         }
@@ -267,7 +262,6 @@ impl SystemExt for System {
                             name,
                         );
                         compute_cpu_usage(&mut p, nb_processors, system_time);
-                        update_disk_usage(&mut p);
                         Some(p)
                     })
                     .collect::<Vec<_>>();
@@ -292,10 +286,6 @@ impl SystemExt for System {
             // kicked in since new call to NtQuerySystemInformation
             buffer_size = (cb_needed + (1024 * 10)) as usize;
         }
-    }
-
-    fn refresh_disks_list(&mut self) {
-        self.disks = unsafe { get_disks() };
     }
 
     fn refresh_users_list(&mut self) {
@@ -355,14 +345,6 @@ impl SystemExt for System {
         &mut self.components
     }
 
-    fn get_disks(&self) -> &[Disk] {
-        &self.disks
-    }
-
-    fn get_disks_mut(&mut self) -> &mut [Disk] {
-        &mut self.disks
-    }
-
     fn get_users(&self) -> &[User] {
         &self.users
     }
@@ -406,7 +388,6 @@ fn refresh_existing_process(s: &mut System, pid: Pid) -> bool {
             return false;
         }
         update_memory(entry);
-        update_disk_usage(entry);
         compute_cpu_usage(
             entry,
             s.processors.len() as u64,

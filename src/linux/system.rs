@@ -5,11 +5,9 @@
 //
 
 use sys::component::{self, Component};
-use sys::disk;
 use sys::process::*;
 use sys::processor::*;
 
-use Disk;
 use LoadAvg;
 use Networks;
 use Pid;
@@ -141,7 +139,6 @@ pub struct System {
     processors: Vec<Processor>,
     page_size_kb: u64,
     components: Vec<Component>,
-    disks: Vec<Disk>,
     networks: Networks,
     uptime: u64,
     users: Vec<User>,
@@ -297,7 +294,6 @@ impl SystemExt for System {
             processors: Vec::with_capacity(4),
             page_size_kb: unsafe { sysconf(_SC_PAGESIZE) as u64 / 1024 },
             components: Vec::new(),
-            disks: Vec::with_capacity(2),
             networks: Networks::new(),
             uptime: get_uptime(),
             users: Vec::new(),
@@ -386,10 +382,6 @@ impl SystemExt for System {
         found
     }
 
-    fn refresh_disks_list(&mut self) {
-        self.disks = disk::get_all_disks();
-    }
-
     fn refresh_users_list(&mut self) {
         self.users = crate::linux::users::get_users_list();
     }
@@ -461,14 +453,6 @@ impl SystemExt for System {
 
     fn get_components_mut(&mut self) -> &mut [Component] {
         &mut self.components
-    }
-
-    fn get_disks(&self) -> &[Disk] {
-        &self.disks
-    }
-
-    fn get_disks_mut(&mut self) -> &mut [Disk] {
-        &mut self.disks
     }
 
     fn get_uptime(&self) -> u64 {
@@ -780,7 +764,6 @@ fn _get_process_data(
             uptime,
             now,
         );
-        update_process_disk_activity(entry, path);
         return Ok((None, nb));
     }
 
@@ -871,7 +854,6 @@ fn _get_process_data(
         uptime,
         now,
     );
-    update_process_disk_activity(&mut p, path);
     Ok((Some(p), nb))
 }
 

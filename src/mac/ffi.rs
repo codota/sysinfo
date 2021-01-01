@@ -131,14 +131,6 @@ extern "C" {
     //     propertyKeys: *mut c_void,
     //     options: usize,
     // ) -> CFArrayRef;
-    pub fn macos_get_disks() -> CFArrayRef;
-    pub fn DADiskCreateFromVolumePath(
-        allocator: CFAllocatorRef,
-        session: DASessionRef,
-        path: CFURLRef,
-    ) -> DADiskRef;
-    // pub fn DADiskGetBSDName(disk: DADiskRef) -> *const c_char;
-    pub fn DADiskCopyDescription(disk: DADiskRef) -> CFMutableDictionaryRef;
 }
 
 // TODO: waiting for https://github.com/rust-lang/libc/pull/678
@@ -289,8 +281,6 @@ pub struct __NSArray {
     __private: c_void,
 }
 #[repr(C)]
-pub struct __DADisk(c_void);
-#[repr(C)]
 pub struct __DASession(c_void);
 
 pub type CFAllocatorRef = *const __CFAllocator;
@@ -303,7 +293,6 @@ pub type CFDictionaryRef = *const __CFDictionary;
 pub type CFTypeRef = *const c_void;
 pub type CFStringRef = *const __CFString;
 // pub type NSArray = *const __NSArray;
-pub type DADiskRef = *const __DADisk;
 pub type DASessionRef = *const __DASession;
 // pub type ODNodeRef = *const __ODNode;
 // pub type ODSessionRef = *const __ODSession;
@@ -479,8 +468,6 @@ pub struct RUsageInfoV2 {
     pub ri_child_interrupt_wkups: u64,
     pub ri_child_pageins: u64,
     pub ri_child_elapsed_abstime: u64,
-    pub ri_diskio_bytesread: u64,
-    pub ri_diskio_byteswritten: u64,
 }
 
 //pub const HOST_CPU_LOAD_INFO_COUNT: usize = 4;

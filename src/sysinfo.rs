@@ -29,10 +29,6 @@
 //!     println!("{:?}", component);
 //! }
 //!
-//! // And then all disks' information:
-//! for disk in system.get_disks() {
-//!     println!("{:?}", disk);
-//! }
 //!
 //! // And finally the RAM and SWAP information:
 //! println!("total memory: {} KB", system.get_total_memory());
@@ -109,11 +105,11 @@ cfg_if! {
 }
 
 pub use common::{
-    AsU32, DiskType, DiskUsage, LoadAvg, NetworksIter, Pid, RefreshKind, Signal, User,
+    AsU32, LoadAvg, NetworksIter, Pid, RefreshKind, Signal, User,
 };
-pub use sys::{Component, Disk, NetworkData, Networks, Process, ProcessStatus, Processor, System};
+pub use sys::{Component, NetworkData, Networks, Process, ProcessStatus, Processor, System};
 pub use traits::{
-    ComponentExt, DiskExt, NetworkExt, NetworksExt, ProcessExt, ProcessorExt, SystemExt, UserExt,
+    ComponentExt, NetworkExt, NetworksExt, ProcessExt, ProcessorExt, SystemExt, UserExt,
 };
 
 #[cfg(feature = "c-interface")]

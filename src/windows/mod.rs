@@ -5,7 +5,6 @@
 //
 
 mod component;
-mod disk;
 #[macro_use]
 mod macros;
 mod network;
@@ -18,7 +17,6 @@ mod users;
 mod ffi;
 
 pub use self::component::Component;
-pub use self::disk::Disk;
 pub use self::network::{NetworkData, Networks};
 pub use self::process::{Process, ProcessStatus};
 pub use self::processor::Processor;

@@ -7,7 +7,6 @@
 use sys::component::Component;
 use sys::process::*;
 use sys::processor::*;
-use sys::Disk;
 use sys::Networks;
 use LoadAvg;
 use Pid;
@@ -43,8 +42,6 @@ impl SystemExt for System {
     fn refresh_process(&mut self, _pid: Pid) -> bool {
         false
     }
-
-    fn refresh_disks_list(&mut self) {}
 
     fn refresh_users_list(&mut self) {}
 
@@ -109,14 +106,6 @@ impl SystemExt for System {
     }
 
     fn get_components_mut(&mut self) -> &mut [Component] {
-        &mut []
-    }
-
-    fn get_disks(&self) -> &[Disk] {
-        &[]
-    }
-
-    fn get_disks_mut(&mut self) -> &mut [Disk] {
         &mut []
     }
 

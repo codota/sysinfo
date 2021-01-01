@@ -6,8 +6,6 @@
 
 use Component;
 use ComponentExt;
-use Disk;
-use DiskExt;
 use NetworkData;
 use NetworkExt;
 use Networks;
@@ -45,27 +43,8 @@ impl fmt::Debug for System {
             .field("nb CPUs", &self.get_processors().len())
             .field("nb network interfaces", &self.get_networks().iter().count())
             .field("nb processes", &self.get_processes().len())
-            .field("nb disks", &self.get_disks().len())
             .field("nb components", &self.get_components().len())
             .finish()
-    }
-}
-
-impl fmt::Debug for Disk {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            fmt,
-            "Disk({:?})[FS: {:?}][Type: {:?}] mounted on {:?}: {}/{} B",
-            self.get_name(),
-            self.get_file_system()
-                .iter()
-                .map(|c| *c as char)
-                .collect::<Vec<_>>(),
-            self.get_type(),
-            self.get_mount_point(),
-            self.get_available_space(),
-            self.get_total_space()
-        )
     }
 }
 
@@ -84,7 +63,6 @@ impl fmt::Debug for Process {
             .field("CPU usage", &self.cpu_usage())
             .field("status", &self.status())
             .field("root", &self.root())
-            .field("disk_usage", &self.disk_usage())
             .finish()
     }
 }

@@ -56,12 +56,6 @@ use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt};
 
 let mut sys = System::new_all();
 
-// We display the disks:
-println!("=> disk list:");
-for disk in sys.get_disks() {
-    println!("{:?}", disk);
-}
-
 // Network data:
 for (interface_name, data) in sys.get_networks() {
     println!("{}: {}/{} B", interface_name, data.get_received(), data.get_transmitted());
@@ -86,7 +80,7 @@ sys.refresh_all();
 
 // We show the processes and some of their information:
 for (pid, process) in sys.get_processes() {
-    println!("[{}] {} {:?}", pid, process.name(), process.disk_usage());
+    println!("[{}] {}", pid, process.name());
 }
 ```
 
@@ -124,8 +118,6 @@ test bench_refresh_all             ... bench:   5,649,643 ns/iter (+/- 444,129)
 test bench_refresh_components      ... bench:      25,293 ns/iter (+/- 1,748)
 test bench_refresh_components_list ... bench:     382,331 ns/iter (+/- 31,620)
 test bench_refresh_cpu             ... bench:      13,633 ns/iter (+/- 1,135)
-test bench_refresh_disks           ... bench:       2,509 ns/iter (+/- 75)
-test bench_refresh_disks_list      ... bench:      51,488 ns/iter (+/- 5,470)
 test bench_refresh_memory          ... bench:      12,941 ns/iter (+/- 3,023)
 test bench_refresh_networks        ... bench:     256,506 ns/iter (+/- 37,196)
 test bench_refresh_networks_list   ... bench:     266,751 ns/iter (+/- 54,535)
@@ -147,8 +139,6 @@ test bench_refresh_all             ... bench:   3,125,085 ns/iter (+/- 92,479)
 test bench_refresh_components      ... bench:   1,239,478 ns/iter (+/- 45,790)
 test bench_refresh_components_list ... bench:   3,197,295 ns/iter (+/- 91,662)
 test bench_refresh_cpu             ... bench:      24,973 ns/iter (+/- 1,844)
-test bench_refresh_disks           ... bench:      52,321 ns/iter (+/- 1,533)
-test bench_refresh_disks_list      ... bench:     114,756 ns/iter (+/- 3,900)
 test bench_refresh_memory          ... bench:         581 ns/iter (+/- 25)
 test bench_refresh_networks        ... bench:      35,231 ns/iter (+/- 2,210)
 test bench_refresh_networks_list   ... bench:     661,170 ns/iter (+/- 56,636)
@@ -170,8 +160,6 @@ test bench_refresh_all             ... bench:   1,915,573 ns/iter (+/- 296,132)
 test bench_refresh_components      ... bench:     293,904 ns/iter (+/- 63,492)
 test bench_refresh_components_list ... bench:     894,462 ns/iter (+/- 161,599)
 test bench_refresh_cpu             ... bench:       8,636 ns/iter (+/- 1,244)
-test bench_refresh_disks           ... bench:         937 ns/iter (+/- 97)
-test bench_refresh_disks_list      ... bench:      25,116 ns/iter (+/- 990)
 test bench_refresh_memory          ... bench:       2,172 ns/iter (+/- 67)
 test bench_refresh_networks        ... bench:     183,552 ns/iter (+/- 2,253)
 test bench_refresh_networks_list   ... bench:     183,623 ns/iter (+/- 11,183)

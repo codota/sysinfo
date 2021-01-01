@@ -15,8 +15,6 @@ use std::str;
 use libc::{c_void, memcpy};
 
 use once_cell::sync::Lazy;
-
-use DiskUsage;
 use Pid;
 use ProcessExt;
 
@@ -422,14 +420,6 @@ impl ProcessExt for Process {
         self.cpu_usage
     }
 
-    fn disk_usage(&self) -> DiskUsage {
-        DiskUsage {
-            written_bytes: self.written_bytes - self.old_written_bytes,
-            total_written_bytes: self.written_bytes,
-            read_bytes: self.read_bytes - self.old_read_bytes,
-            total_read_bytes: self.read_bytes,
-        }
-    }
 }
 
 impl Drop for Process {
@@ -756,19 +746,6 @@ pub fn get_handle(p: &Process) -> HANDLE {
     *p.handle
 }
 
-pub fn update_disk_usage(p: &mut Process) {
-    let mut counters = MaybeUninit::<IO_COUNTERS>::uninit();
-    let ret = unsafe { GetProcessIoCounters(*p.handle, counters.as_mut_ptr()) };
-    if ret == 0 {
-        sysinfo_debug!("GetProcessIoCounters call failed on process {}", p.pid());
-    } else {
-        let counters = unsafe { counters.assume_init() };
-        p.old_read_bytes = p.read_bytes;
-        p.old_written_bytes = p.written_bytes;
-        p.read_bytes = counters.ReadTransferCount;
-        p.written_bytes = counters.WriteTransferCount;
-    }
-}
 
 pub fn update_memory(p: &mut Process) {
     unsafe {

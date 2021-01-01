@@ -104,10 +104,6 @@ assert_eq!(r.", stringify!($name), "(), false);
 /// ```
 /// use sysinfo::{RefreshKind, System, SystemExt};
 ///
-/// // We want everything except disks.
-/// let mut system = System::new_with_specifics(RefreshKind::everything().without_disks_list());
-///
-/// assert_eq!(system.get_disks().len(), 0);
 /// assert!(system.get_processes().len() > 0);
 /// ```
 ///
@@ -117,8 +113,6 @@ pub struct RefreshKind {
     networks: bool,
     networks_list: bool,
     processes: bool,
-    disks_list: bool,
-    disks: bool,
     memory: bool,
     cpu: bool,
     components: bool,
@@ -137,8 +131,6 @@ impl RefreshKind {
     /// assert_eq!(r.networks(), false);
     /// assert_eq!(r.networks_list(), false);
     /// assert_eq!(r.processes(), false);
-    /// assert_eq!(r.disks_list(), false);
-    /// assert_eq!(r.disks(), false);
     /// assert_eq!(r.memory(), false);
     /// assert_eq!(r.cpu(), false);
     /// assert_eq!(r.components(), false);
@@ -159,8 +151,6 @@ impl RefreshKind {
     /// assert_eq!(r.networks(), true);
     /// assert_eq!(r.networks_list(), true);
     /// assert_eq!(r.processes(), true);
-    /// assert_eq!(r.disks_list(), true);
-    /// assert_eq!(r.disks(), true);
     /// assert_eq!(r.memory(), true);
     /// assert_eq!(r.cpu(), true);
     /// assert_eq!(r.components(), true);
@@ -172,8 +162,6 @@ impl RefreshKind {
             networks: true,
             networks_list: true,
             processes: true,
-            disks: true,
-            disks_list: true,
             memory: true,
             cpu: true,
             components: true,
@@ -185,8 +173,6 @@ impl RefreshKind {
     impl_get_set!(networks, with_networks, without_networks);
     impl_get_set!(networks_list, with_networks_list, without_networks_list);
     impl_get_set!(processes, with_processes, without_processes);
-    impl_get_set!(disks, with_disks, without_disks);
-    impl_get_set!(disks_list, with_disks_list, without_disks_list);
     impl_get_set!(memory, with_memory, without_memory);
     impl_get_set!(cpu, with_cpu, without_cpu);
     impl_get_set!(components, with_components, without_components);
@@ -233,30 +219,6 @@ impl<'a> IntoIterator for &'a Networks {
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
     }
-}
-
-/// Enum containing the different supported disks types.
-///
-/// This type is returned by [`Disk::get_type`][crate::Disk#method.get_type].
-///
-/// ```no_run
-/// use sysinfo::{System, SystemExt, DiskExt};
-///
-/// let system = System::new_all();
-/// for disk in system.get_disks() {
-///     println!("{:?}: {:?}", disk.get_name(), disk.get_type());
-/// }
-/// ```
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum DiskType {
-    /// HDD type.
-    HDD,
-    /// SSD type.
-    SSD,
-    /// Removable disk.
-    Removable,
-    /// Unknown type.
-    Unknown(isize),
 }
 
 /// An enum representing signal on UNIX-like systems.
@@ -382,38 +344,4 @@ impl UserExt for User {
     fn get_groups(&self) -> &[String] {
         &self.groups
     }
-}
-
-/// Type containing read and written bytes.
-///
-/// It is returned by [`ProcessExt::disk_usage`][crate::ProcessExt::disk_usage].
-///
-/// ```no_run
-/// use sysinfo::{ProcessExt, System, SystemExt};
-///
-/// let s = System::new_all();
-/// for (pid, process) in s.get_processes() {
-///     let disk_usage = process.disk_usage();
-///     println!("[{}] read bytes   : new/total => {}/{} B",
-///         pid,
-///         disk_usage.read_bytes,
-///         disk_usage.total_read_bytes,
-///     );
-///     println!("[{}] written bytes: new/total => {}/{} B",
-///         pid,
-///         disk_usage.written_bytes,
-///         disk_usage.total_written_bytes,
-///     );
-/// }
-/// ```
-#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
-pub struct DiskUsage {
-    /// Total number of written bytes.
-    pub total_written_bytes: u64,
-    /// Number of written bytes since the last refresh.
-    pub written_bytes: u64,
-    /// Total number of read bytes.
-    pub total_read_bytes: u64,
-    /// Number of read bytes since the last refresh.
-    pub read_bytes: u64,
 }
