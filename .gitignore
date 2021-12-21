@@ -46,3 +46,6 @@ tags
 
 **.o
 simple
+
+*.iml
+.idea/
