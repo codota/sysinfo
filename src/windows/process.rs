@@ -131,12 +131,12 @@ static WINDOWS_8_1_OR_NEWER: Lazy<bool> = Lazy::new(|| {
         || version_info.dwMajorVersion == 6 && version_info.dwMinorVersion >= 3
 });
 
-unsafe fn get_process_name(process_handler: HANDLE, h_mod: *mut c_void) -> String {
+unsafe fn get_process_name(process_handler: HANDLE) -> String {
     let mut process_name = [0u16; MAX_PATH + 1];
 
-    GetModuleBaseNameW(
+    GetModuleFileNameExW(
         process_handler,
-        h_mod as _,
+        null_mut(),
         process_name.as_mut_ptr(),
         MAX_PATH as DWORD + 1,
     );
@@ -147,7 +147,10 @@ unsafe fn get_process_name(process_handler: HANDLE, h_mod: *mut c_void) -> Strin
         }
         pos += 1;
     }
-    String::from_utf16_lossy(&process_name[..pos])
+    let full_path = PathBuf::from(String::from_utf16_lossy(&process_name[..pos]));
+
+    full_path.file_name().map_or_else(|| String::new(), |file_name| file_name.to_string_lossy().to_string())
+
 }
 
 unsafe fn get_h_mod(process_handler: HANDLE, h_mod: &mut *mut c_void) -> bool {
@@ -284,11 +287,7 @@ impl Process {
         let mut h_mod = null_mut();
 
         unsafe {
-            let name = if get_h_mod(process_handler, &mut h_mod) {
-                get_process_name(process_handler, h_mod)
-            } else {
-                String::new()
-            };
+            let name = get_process_name(process_handler);
             let environ = get_proc_env(process_handler, pid as u32, &name);
 
             let exe = get_exe(process_handler, h_mod);
